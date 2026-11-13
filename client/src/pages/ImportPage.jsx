@@ -181,17 +181,6 @@ export default function ImportPage() {
       .catch((err) => setRowError(err.message || 'Erro ao descartar'));
   }
 
-  const [choosingTransferRow, setChoosingTransferRow] = useState(null);
-
-  function startTransferConversion(row) {
-    setChoosingTransferRow(row.id);
-  }
-
-  function handleTransferDestination(row, toAccountId) {
-    setChoosingTransferRow(null);
-    if (toAccountId) onConvertToTransfer(row, toAccountId);
-  }
-
   // ------------------------------------------------------------ render
 
   if (batch) {
@@ -333,6 +322,17 @@ function ReviewStep({
   onCommit,
   onDiscard
 }) {
+  const [choosingTransferRow, setChoosingTransferRow] = useState(null);
+
+  function startTransferConversion(row) {
+    setChoosingTransferRow(row.id);
+  }
+
+  function handleTransferDestination(row, toAccountId) {
+    setChoosingTransferRow(null);
+    if (toAccountId) onConvertToTransfer(row, toAccountId);
+  }
+
   const visibleRows = batch.rows.filter((r) => filter === 'all' || r.match_status === filter);
 
   return (
