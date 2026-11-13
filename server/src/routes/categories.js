@@ -90,3 +90,25 @@ categoriesRouter.patch('/:id', validateBody(updateCategorySchema), (req, res, ne
     next(err);
   }
 });
+
+// DELETE /api/categories/:id - delete category
+// Archives (soft delete) when the category or any descendant is referenced by
+// transactions/recurring items/budgets, cascading to active children.
+// Hard-deletes otherwise (unused subtree).
+categoriesRouter.delete('/:id', (req, res, next) => {
+  try {
+    const id = Number(req.params.id);
+    const result = categoryService.deleteCategory(id);
+    if (!result) {
+      return res.status(404).json({
+        error: {
+          code: 'NOT_FOUND',
+          message: 'Categoria não encontrada'
+        }
+      });
+    }
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+});

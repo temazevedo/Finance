@@ -40,6 +40,7 @@ export const api = {
   getCategoryTree: (includeArchived = false) => apiFetch(`/categories/tree?includeArchived=${includeArchived}`),
   createCategory: (data) => apiFetch('/categories', { method: 'POST', body: JSON.stringify(data) }),
   updateCategory: (id, data) => apiFetch(`/categories/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteCategory: (id) => apiFetch(`/categories/${id}`, { method: 'DELETE' }),
 
   // Transactions
   getTransactions: (params = {}) => {
