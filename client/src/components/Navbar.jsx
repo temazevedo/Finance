@@ -2,6 +2,7 @@ import {
   CalendarClock,
   CreditCard,
   Ellipsis,
+  FileUp,
   FolderTree,
   LayoutDashboard,
   PieChart,
@@ -18,6 +19,7 @@ const desktopItems = [
   { to: '/upcoming', label: 'Próximos', icon: CalendarClock },
   { to: '/budgets', label: 'Orçamento', icon: PieChart },
   { to: '/recurring', label: 'Recorrentes', icon: Repeat },
+  { to: '/import', label: 'Importar', icon: FileUp },
   { to: '/accounts', label: 'Contas', icon: CreditCard },
   { to: '/categories', label: 'Categorias', icon: FolderTree }
 ];
