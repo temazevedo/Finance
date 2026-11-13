@@ -1,21 +1,32 @@
 import {
   CalendarClock,
   CreditCard,
+  Ellipsis,
   FolderTree,
   LayoutDashboard,
+  PieChart,
   Receipt,
   Repeat,
   Wallet
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 
-const navItems = [
+const desktopItems = [
   { to: '/', label: 'Painel', icon: LayoutDashboard },
   { to: '/transactions', label: 'Transações', icon: Receipt },
   { to: '/upcoming', label: 'Próximos', icon: CalendarClock },
+  { to: '/budgets', label: 'Orçamento', icon: PieChart },
   { to: '/recurring', label: 'Recorrentes', icon: Repeat },
   { to: '/accounts', label: 'Contas', icon: CreditCard },
   { to: '/categories', label: 'Categorias', icon: FolderTree }
+];
+
+const mobileItems = [
+  { to: '/', label: 'Painel', icon: LayoutDashboard },
+  { to: '/transactions', label: 'Transações', icon: Receipt },
+  { to: '/budgets', label: 'Orçamento', icon: PieChart },
+  { to: '/upcoming', label: 'Próximos', icon: CalendarClock },
+  { to: '/more', label: 'Mais', icon: Ellipsis }
 ];
 
 export default function Navbar() {
@@ -35,7 +46,7 @@ export default function Navbar() {
           </div>
 
           <nav className="hidden md:flex items-center gap-1">
-            {navItems.map((item) => {
+            {desktopItems.map((item) => {
               const Icon = item.icon;
               return (
                 <NavLink
@@ -60,7 +71,7 @@ export default function Navbar() {
 
       {/* Mobile Bottom Navigation Bar */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-30 flex items-center justify-around py-2 shadow-lg">
-        {navItems.map((item) => {
+        {mobileItems.map((item) => {
           const Icon = item.icon;
           return (
             <NavLink

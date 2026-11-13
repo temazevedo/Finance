@@ -3,9 +3,13 @@ import {
   ArrowDownLeft,
   ArrowUpRight,
   ArrowLeftRight,
+  CalendarClock,
+  ChevronRight,
   CreditCard,
+  PieChart,
   Plus,
   Receipt,
+  PiggyBank,
   TrendingUp,
   Wallet
 } from 'lucide-react';
@@ -18,6 +22,8 @@ import {
   ACCOUNT_TYPE_LABELS,
   formatCurrency,
   formatDateDisplay,
+  formatMonthDisplay,
+  getCurrentMonth,
   TRANSACTION_TYPE_LABELS
 } from '../utils/format.js';
 
@@ -37,8 +43,33 @@ export default function DashboardPage() {
     queryFn: () => api.getTransactions({ limit: 5 })
   });
 
+  // Month budget progress, surplus and upcoming planned items
+  const currentMonth = getCurrentMonth();
+  const { data: monthlyReport } = useQuery({
+    queryKey: ['budget-vs-actual', currentMonth],
+    queryFn: () => api.getBudgetVsActual(currentMonth)
+  });
+  const { data: recurringSummary } = useQuery({
+    queryKey: ['recurring-summary'],
+    queryFn: api.getRecurringSummary
+  });
+  const { data: upcomingData } = useQuery({
+    queryKey: ['transactions', { status: 'planned', limit: 4 }],
+    queryFn: () => api.getTransactions({ status: 'planned', limit: 4 })
+  });
+
   const recentTransactions = txData?.data || [];
+  const upcomingPlanned = (upcomingData?.data || []).filter((tx) => tx.status === 'planned');
   const totalBalanceCents = balances.reduce((sum, acc) => sum + (acc.balance_cents || 0), 0);
+  const budgetTotals = monthlyReport?.totals;
+  const budgetRatio =
+    budgetTotals && budgetTotals.available_cents > 0
+      ? Math.min(budgetTotals.actual_cents / budgetTotals.available_cents, 1)
+      : budgetTotals && budgetTotals.actual_cents > 0
+      ? 1
+      : 0;
+  const budgetBarColor =
+    budgetRatio >= 1 ? 'bg-rose-500' : budgetRatio >= 0.85 ? 'bg-amber-500' : 'bg-emerald-400';
 
   return (
     <div className="space-y-6 pb-20 md:pb-6">
@@ -87,6 +118,144 @@ export default function DashboardPage() {
           <span>Saldos confirmados</span>
         </div>
       </div>
+
+      {/* Month Budget & Surplus Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wide">
+              <PieChart className="w-3.5 h-3.5 text-slate-500" />
+              Orçamento de {formatMonthDisplay(currentMonth)}
+            </span>
+            <Link to="/budgets" className="text-xs font-semibold text-emerald-600 hover:text-emerald-700">
+              Gerir →
+            </Link>
+          </div>
+          {budgetTotals ? (
+            <>
+              <div className="flex items-baseline gap-2">
+                <span className="text-lg font-bold text-slate-900">
+                  {formatCurrency(budgetTotals.actual_cents)}
+                </span>
+                <span className="text-xs text-slate-400">
+                  de {formatCurrency(budgetTotals.available_cents)} disponíveis
+                </span>
+              </div>
+              <div className="h-1.5 w-full rounded-full bg-slate-100">
+                <div
+                  className={`h-1.5 rounded-full ${budgetBarColor}`}
+                  style={{ width: `${budgetRatio * 100}%` }}
+                />
+              </div>
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-slate-500">
+                  Orçado {formatCurrency(budgetTotals.budgeted_cents)}
+                  {budgetTotals.carryover_cents !== 0 && (
+                    <span className={budgetTotals.carryover_cents < 0 ? 'text-rose-500' : 'text-emerald-600'}>
+                      {' '}
+                      {budgetTotals.carryover_cents > 0 ? '+' : ''}
+                      {formatCurrency(budgetTotals.carryover_cents)} rollover
+                    </span>
+                  )}
+                </span>
+                {budgetTotals.is_overspent && (
+                  <span className="text-[10px] font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full">
+                    Excedido
+                  </span>
+                )}
+              </div>
+            </>
+          ) : (
+            <p className="text-xs text-slate-400 pt-2">A carregar orçamento do mês…</p>
+          )}
+        </div>
+
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wide">
+              <PiggyBank className="w-3.5 h-3.5 text-teal-600" />
+              Excedente mensal estimado
+            </span>
+            <Link to="/recurring" className="text-xs font-semibold text-emerald-600 hover:text-emerald-700">
+              Detalhe →
+            </Link>
+          </div>
+          {recurringSummary ? (
+            <>
+              <div
+                className={`text-lg font-bold ${
+                  recurringSummary.surplus_cents >= 0 ? 'text-teal-700' : 'text-red-700'
+                }`}
+              >
+                {formatCurrency(recurringSummary.surplus_cents)}
+              </div>
+              <p className="text-[11px] text-slate-500">
+                Receitas {formatCurrency(recurringSummary.income_cents)} − despesas fixas{' '}
+                {formatCurrency(recurringSummary.expense_cents)}
+              </p>
+            </>
+          ) : (
+            <p className="text-xs text-slate-400 pt-2">A carregar resumo…</p>
+          )}
+        </div>
+      </div>
+
+      {/* Upcoming planned items */}
+      {upcomingPlanned.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+              <CalendarClock className="w-4 h-4 text-amber-600" />
+              Próximos Movimentos
+            </h2>
+            <Link to="/upcoming" className="text-xs font-semibold text-emerald-600 hover:text-emerald-700">
+              Ver todos →
+            </Link>
+          </div>
+          <div className="bg-white border border-slate-200 rounded-2xl divide-y divide-slate-100 shadow-xs overflow-hidden">
+            {upcomingPlanned.map((tx) => {
+              const isExpense = tx.type === 'expense';
+              const isIncome = tx.type === 'income';
+              return (
+                <div key={tx.id} className="p-3.5 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div
+                      className={`p-2 rounded-xl shrink-0 ${
+                        isExpense
+                          ? 'bg-rose-50 text-rose-600'
+                          : isIncome
+                          ? 'bg-emerald-50 text-emerald-600'
+                          : 'bg-amber-50 text-amber-600'
+                      }`}
+                    >
+                      {isExpense && <ArrowDownLeft className="w-4 h-4" />}
+                      {isIncome && <ArrowUpRight className="w-4 h-4" />}
+                      {!isIncome && !isExpense && <CalendarClock className="w-4 h-4" />}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-slate-900 truncate">{tx.name || 'Movimento planeado'}</p>
+                      <p className="text-[11px] text-slate-500">
+                        {formatDateDisplay(tx.date)} •{' '}
+                        {isIncome ? 'receita' : isExpense ? 'despesa' : 'transferência'} planeada
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0 ml-3">
+                    <div className="font-mono text-sm font-bold text-slate-700">
+                      {formatCurrency(tx.amount_cents)}
+                    </div>
+                    {!isIncome && !isExpense && (
+                      <div className="text-[10px] text-slate-400">
+                        {tx.account_name} → {tx.to_account_name}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Accounts Grid */}
       <div className="space-y-3">

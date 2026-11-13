@@ -81,6 +81,15 @@ export const api = {
     }),
   completeOnboarding: (data) => apiFetch('/onboarding/complete', { method: 'POST', body: JSON.stringify(data) }),
 
+  // Budgets
+  getBudgets: (month) => apiFetch(`/budgets?month=${month}`),
+  saveBudgets: (month, budgets) =>
+    apiFetch(`/budgets?month=${month}`, { method: 'PUT', body: JSON.stringify({ budgets }) }),
+
+  // Reports
+  getBudgetVsActual: (month) => apiFetch(`/reports/budget-vs-actual?month=${month}`),
+  getCashflow: (from, to) => apiFetch(`/reports/cashflow?from=${from}&to=${to}`),
+
   // Health
   getHealth: () => apiFetch('/health')
 };

@@ -3,8 +3,10 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { api } from './api/client.js';
 import Navbar from './components/Navbar.jsx';
 import AccountsPage from './pages/AccountsPage.jsx';
+import BudgetsPage from './pages/BudgetsPage.jsx';
 import CategoriesPage from './pages/CategoriesPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
+import MorePage from './pages/MorePage.jsx';
 import OnboardingPage from './pages/OnboardingPage.jsx';
 import RecurringPage from './pages/RecurringPage.jsx';
 import TransactionsPage from './pages/TransactionsPage.jsx';
@@ -42,8 +44,10 @@ export default function App() {
           <Route path="/transactions" element={<TransactionsPage />} />
           <Route path="/upcoming" element={<UpcomingPage />} />
           <Route path="/recurring" element={<RecurringPage />} />
+          <Route path="/budgets" element={<BudgetsPage />} />
           <Route path="/accounts" element={<AccountsPage />} />
           <Route path="/categories" element={<CategoriesPage />} />
+          <Route path="/more" element={<MorePage />} />
         </Routes>
       </main>
     </div>

@@ -168,3 +168,39 @@ export function addDays(dateStr, daysToAdd) {
   const utcDate = new Date(Date.UTC(year, month - 1, day + daysToAdd));
   return formatYMD(utcDate.getUTCFullYear(), utcDate.getUTCMonth() + 1, utcDate.getUTCDate());
 }
+
+/**
+ * Extracts the month part ('YYYY-MM') from a date or month string.
+ * @param {string} dateOrMonthStr - 'YYYY-MM-DD' or 'YYYY-MM'
+ * @returns {string}
+ */
+export function monthOf(dateOrMonthStr) {
+  return dateOrMonthStr.substring(0, 7);
+}
+
+/**
+ * Adds months to a 'YYYY-MM' month string producing a valid 'YYYY-MM'.
+ * @param {string} monthStr - 'YYYY-MM'
+ * @param {number} monthsToAdd
+ * @returns {string}
+ */
+export function addMonthsToMonth(monthStr, monthsToAdd) {
+  const [year, month] = monthStr.split('-').map(Number);
+  const totalMonths = year * 12 + (month - 1) + monthsToAdd;
+  const targetYear = Math.floor(totalMonths / 12);
+  const targetMonth = (((totalMonths % 12) + 12) % 12) + 1;
+  return `${targetYear}-${String(targetMonth).padStart(2, '0')}`;
+}
+
+/**
+ * Returns the first and last calendar dates of a month ('YYYY-MM').
+ * @param {string} monthStr - 'YYYY-MM'
+ * @returns {{ from: string, to: string }}
+ */
+export function getMonthRange(monthStr) {
+  const [year, month] = monthStr.split('-').map(Number);
+  return {
+    from: formatYMD(year, month, 1),
+    to: formatYMD(year, month, getDaysInMonth(year, month))
+  };
+}

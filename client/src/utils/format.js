@@ -98,6 +98,57 @@ export const TRANSACTION_TYPE_LABELS = {
   transfer: 'Transferência'
 };
 
+/**
+ * Returns the current local month as 'YYYY-MM'.
+ * @returns {string}
+ */
+export function getCurrentMonth() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  return `${year}-${month}`;
+}
+
+/**
+ * Adds months to a 'YYYY-MM' string (clamps safely across year boundaries).
+ * @param {string} monthStr - 'YYYY-MM'
+ * @param {number} monthsToAdd
+ * @returns {string}
+ */
+export function addMonthsToMonth(monthStr, monthsToAdd) {
+  const [year, month] = monthStr.split('-').map(Number);
+  const totalMonths = year * 12 + (month - 1) + monthsToAdd;
+  const targetYear = Math.floor(totalMonths / 12);
+  const targetMonth = (((totalMonths % 12) + 12) % 12) + 1;
+  return `${targetYear}-${String(targetMonth).padStart(2, '0')}`;
+}
+
+/**
+ * Formats a 'YYYY-MM' month string for display in pt-PT ("fevereiro de 2026").
+ * @param {string} monthStr - 'YYYY-MM'
+ * @returns {string}
+ */
+export function formatMonthDisplay(monthStr) {
+  const MONTHS = [
+    'janeiro',
+    'fevereiro',
+    'março',
+    'abril',
+    'maio',
+    'junho',
+    'julho',
+    'agosto',
+    'setembro',
+    'outubro',
+    'novembro',
+    'dezembro'
+  ];
+  if (!monthStr || typeof monthStr !== 'string') return '';
+  const [year, month] = monthStr.split('-').map(Number);
+  if (!year || !month || month < 1 || month > 12) return monthStr;
+  return `${MONTHS[month - 1]} de ${year}`;
+}
+
 export const BUDGET_GROUP_LABELS = {
   needs: 'Necessidades (50%)',
   wants: 'Desejos (30%)',

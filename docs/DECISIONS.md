@@ -31,3 +31,13 @@ This document records architectural decisions, assumptions, and rationales for t
 - **Context:** The onboarding wizard must be resumable if the browser closes mid-way (spec section 6.2, step 4 variable budgets are ephemeral between steps).
 - **Decision:** Wizard progress persists in two places: recurring items/accounts created during the wizard are normal DB rows (source of truth), while the active step number and the step-4 variable-budgets draft are stored in `settings` (`onboarding_step`, `onboarding_step_data` JSON).
 - **Rationale:** Follows the existing key/value settings pattern already specified (`onboarding_completed`, `onboarding_step`) without adding new tables or API surface.
+
+## Decision 7: Budget Rollover Computation Model
+- **Context:** Spec 6.5 requires cumulative carryover (`carryover = previous_available - previous_actual`) without a dedicated database table for balances.
+- **Decision:** Carryover is computed on demand in `BudgetService.getCarryoverMap(targetMonth)`: for each leaf expense category, iterate month by month from the earliest month holding budgets or confirmed transactions up to the month before the target, accumulating `budget - actual`. A 600-month safety cap bounds the loop.
+- **Rationale:** A single SQL pass over two small tables avoids storing derived state that could drift; the app is local-first with a shallow data history, so recomputation is cheap and always consistent.
+
+## Decision 8: Cashflow Projection Semantics
+- **Context:** `GET /reports/cashflow` must project planned + actual flows over an arbitrary range.
+- **Decision:** Opening balance = active accounts' initial balances + all confirmed flows before `from`. The daily series applies every transaction in `from..to` (both statuses) with sign `+income / -expense`; transfers between own accounts contribute net zero and are excluded from income/expense totals. Projection relies only on stored `planned` transactions (the generator materializes a rolling 60-day horizon); it does not extrapolate beyond generator coverage. Ranges are capped at 370 days.
+- **Rationale:** Keeps the projection consistent with account balances by construction and avoids silently inventing occurrences outside what the user confirmed as a plan.

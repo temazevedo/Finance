@@ -5,9 +5,11 @@ import { fileURLToPath } from 'node:url';
 import { getDb } from './db.js';
 import { runMigrations } from './migrate.js';
 import { accountsRouter } from './routes/accounts.js';
+import { budgetsRouter } from './routes/budgets.js';
 import { categoriesRouter } from './routes/categories.js';
 import { onboardingRouter } from './routes/onboarding.js';
 import { recurringRouter } from './routes/recurring.js';
+import { reportsRouter } from './routes/reports.js';
 import { suggestionsRouter } from './routes/suggestions.js';
 import { transactionsRouter } from './routes/transactions.js';
 import { recurringService } from './services/recurringService.js';
@@ -40,9 +42,11 @@ app.get('/api/health', (req, res) => {
 
 // API Routes
 app.use('/api/accounts', accountsRouter);
+app.use('/api/budgets', budgetsRouter);
 app.use('/api/categories', categoriesRouter);
 app.use('/api/onboarding', onboardingRouter);
 app.use('/api/recurring', recurringRouter);
+app.use('/api/reports', reportsRouter);
 app.use('/api/suggestions', suggestionsRouter);
 app.use('/api/transactions', transactionsRouter);
 
