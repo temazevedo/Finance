@@ -33,12 +33,19 @@ export class AccountService {
   /**
    * Creates a new account.
    */
-  createAccount({ name, type, initial_balance_cents = 0 }) {
+  createAccount({ name, type, initial_balance_cents = 0, interest_rate = null, interest_period = null }) {
+    if ((interest_rate !== null || interest_period !== null) && type !== 'investment') {
+      const error = new Error('A taxa de juro só se aplica a contas de investimento');
+      error.code = 'INTEREST_NOT_ALLOWED';
+      error.status = 400;
+      throw error;
+    }
+
     const stmt = this.db.prepare(`
-      INSERT INTO accounts (name, type, initial_balance_cents)
-      VALUES (?, ?, ?)
+      INSERT INTO accounts (name, type, initial_balance_cents, interest_rate, interest_period)
+      VALUES (?, ?, ?, ?, ?)
     `);
-    const result = stmt.run(name, type, initial_balance_cents);
+    const result = stmt.run(name, type, initial_balance_cents, interest_rate, interest_period);
     return this.getAccountById(result.lastInsertRowid);
   }
 
@@ -71,6 +78,30 @@ export class AccountService {
       values.push(updates.archived);
     }
 
+    // Changing type away from investment clears the interest configuration
+    if (updates.type !== undefined && updates.type !== 'investment' && existing.type === 'investment') {
+      fields.push('interest_rate = NULL');
+      fields.push('interest_period = NULL');
+    }
+
+    // Interest fields are only valid on investment accounts
+    const effectiveType = updates.type !== undefined ? updates.type : existing.type;
+    const interestUpdates = updates.interest_rate !== undefined || updates.interest_period !== undefined;
+    if (interestUpdates && effectiveType !== 'investment') {
+      const error = new Error('A taxa de juro só se aplica a contas de investimento');
+      error.code = 'INTEREST_NOT_ALLOWED';
+      error.status = 400;
+      throw error;
+    }
+    if (updates.interest_rate !== undefined) {
+      fields.push('interest_rate = ?');
+      values.push(updates.interest_rate);
+    }
+    if (updates.interest_period !== undefined) {
+      fields.push('interest_period = ?');
+      values.push(updates.interest_period);
+    }
+
     if (fields.length === 0) {
       return existing;
     }
@@ -99,6 +130,8 @@ export class AccountService {
         a.type,
         a.initial_balance_cents,
         a.archived,
+        a.interest_rate,
+        a.interest_period,
         a.created_at,
         (
           a.initial_balance_cents

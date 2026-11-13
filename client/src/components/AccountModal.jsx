@@ -15,6 +15,8 @@ export default function AccountModal({ isOpen, onClose, account = null }) {
   const [name, setName] = useState('');
   const [type, setType] = useState('checking');
   const [initialBalanceStr, setInitialBalanceStr] = useState('0,00');
+  const [interestRateStr, setInterestRateStr] = useState('');
+  const [interestPeriod, setInterestPeriod] = useState('annual');
   const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
@@ -23,10 +25,18 @@ export default function AccountModal({ isOpen, onClose, account = null }) {
       setName(account.name || '');
       setType(account.type || 'checking');
       setInitialBalanceStr(centsToInput(account.initial_balance_cents) || '0,00');
+      setInterestRateStr(
+        account.interest_rate !== null && account.interest_rate !== undefined
+          ? String(account.interest_rate).replace('.', ',')
+          : ''
+      );
+      setInterestPeriod(account.interest_period || 'annual');
     } else {
       setName('');
       setType('checking');
       setInitialBalanceStr('0,00');
+      setInterestRateStr('');
+      setInterestPeriod('annual');
     }
     setErrorMsg('');
   }, [isOpen, account]);
@@ -48,6 +58,8 @@ export default function AccountModal({ isOpen, onClose, account = null }) {
     setName('');
     setType('checking');
     setInitialBalanceStr('0,00');
+    setInterestRateStr('');
+    setInterestPeriod('annual');
     setErrorMsg('');
     onClose();
   }
@@ -62,20 +74,27 @@ export default function AccountModal({ isOpen, onClose, account = null }) {
     }
 
     const parsedCents = parseCurrencyToCents(initialBalanceStr);
+    const initialBalanceCents = parsedCents !== null ? parsedCents : 0;
 
-    if (isEdit) {
-      mutation.mutate({
-        name: name.trim(),
-        type,
-        initial_balance_cents: parsedCents !== null ? parsedCents : 0
-      });
-    } else {
-      mutation.mutate({
-        name: name.trim(),
-        type,
-        initial_balance_cents: parsedCents !== null ? parsedCents : 0
-      });
+    const payload = {
+      name: name.trim(),
+      type,
+      initial_balance_cents: initialBalanceCents
+    };
+
+    // Interest fields only apply to investment accounts
+    if (type === 'investment') {
+      const cleanRate = interestRateStr.replace(',', '.').trim();
+      const rate = cleanRate === '' ? null : parseFloat(cleanRate);
+      if (cleanRate !== '' && (isNaN(rate) || rate < 0 || rate > 100)) {
+        setErrorMsg('A taxa de juro deve ser um valor entre 0 e 100');
+        return;
+      }
+      payload.interest_rate = rate;
+      payload.interest_period = rate !== null ? interestPeriod : null;
     }
+
+    mutation.mutate(payload);
   }
 
   if (!isOpen) return null;
@@ -146,6 +165,44 @@ export default function AccountModal({ isOpen, onClose, account = null }) {
                 : 'Saldo disponível no momento da criação da conta'}
             </p>
           </div>
+
+          {type === 'investment' && (
+            <div className="p-3 bg-amber-50/50 border border-amber-200 rounded-xl space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Taxa de juro (%)
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="Ex: 2,85"
+                    value={interestRateStr}
+                    onChange={(e) => setInterestRateStr(e.target.value)}
+                    className="w-full text-sm bg-white border border-slate-200 rounded-xl px-3 py-2 font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Periodicidade
+                  </label>
+                  <select
+                    value={interestPeriod}
+                    onChange={(e) => setInterestPeriod(e.target.value)}
+                    className="w-full text-sm bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                  >
+                    <option value="annual">Anual</option>
+                    <option value="monthly">Mensal</option>
+                  </select>
+                </div>
+              </div>
+              <p className="text-xs text-amber-700">
+                No fim de cada período é criado automaticamente um rendimento confirmado
+                ("Juros") calculado sobre o saldo dessa data. Deixe a taxa vazia para não
+                gerar juros automáticos.
+              </p>
+            </div>
+          )}
 
           <div className="pt-2 flex items-center justify-end gap-2">
             <button

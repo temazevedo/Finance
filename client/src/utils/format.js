@@ -92,6 +92,35 @@ export const ACCOUNT_TYPE_LABELS = {
   investment: 'Investimento'
 };
 
+export const INTEREST_PERIOD_LABELS = {
+  monthly: 'ao mês',
+  annual: 'ao ano'
+};
+
+/**
+ * Formats an interest rate for display in pt-PT (2.85 -> "2,85%").
+ * @param {number | null | undefined} rate
+ * @returns {string}
+ */
+export function formatInterestRate(rate) {
+  if (typeof rate !== 'number' || isNaN(rate)) return '';
+  const formatted = rate.toFixed(2).replace('.', ',').replace(/,00$/, '');
+  return `${formatted}%`;
+}
+
+/**
+ * Estimated periodic yield in cents for an investment account.
+ * @param {number} balanceCents
+ * @param {number | null | undefined} rate (percent)
+ * @param {'monthly' | 'annual' | null | undefined} period
+ * @returns {number | null} cents, or null when no interest configured
+ */
+export function estimateInterestCents(balanceCents, rate, period) {
+  if (typeof rate !== 'number' || rate <= 0 || !period) return null;
+  const yearly = (balanceCents * rate) / 100;
+  return Math.round(period === 'monthly' ? yearly / 12 : yearly);
+}
+
 export const TRANSACTION_TYPE_LABELS = {
   expense: 'Despesa',
   income: 'Receita',

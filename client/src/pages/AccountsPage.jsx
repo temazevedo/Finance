@@ -3,7 +3,7 @@ import { Archive, ArchiveRestore, CreditCard, Pencil, Plus, Wallet } from 'lucid
 import React, { useState } from 'react';
 import { api } from '../api/client.js';
 import AccountModal from '../components/AccountModal.jsx';
-import { ACCOUNT_TYPE_LABELS, formatCurrency } from '../utils/format.js';
+import { ACCOUNT_TYPE_LABELS, INTEREST_PERIOD_LABELS, estimateInterestCents, formatCurrency, formatInterestRate } from '../utils/format.js';
 
 export default function AccountsPage() {
   const queryClient = useQueryClient();
@@ -148,6 +148,13 @@ export default function AccountsPage() {
                 <div className="text-2xl font-mono font-bold text-slate-900">
                   {formatCurrency(acc.balance_cents)}
                 </div>
+                {acc.type === 'investment' && acc.interest_rate != null && (
+                  <div className="text-[11px] text-amber-700 font-medium">
+                    {formatInterestRate(acc.interest_rate)} {INTEREST_PERIOD_LABELS[acc.interest_period] || ''}
+                    {estimateInterestCents(acc.balance_cents, acc.interest_rate, acc.interest_period) != null &&
+                      ` • ≈ ${formatCurrency(estimateInterestCents(acc.balance_cents, acc.interest_rate, acc.interest_period))}/período`}
+                  </div>
+                )}
               </div>
 
               <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">

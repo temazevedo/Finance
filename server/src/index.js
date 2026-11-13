@@ -14,6 +14,7 @@ import { settingsRouter } from './routes/settings.js';
 import { suggestionsRouter } from './routes/suggestions.js';
 import { transactionsRouter } from './routes/transactions.js';
 import { createBackup } from './services/backupService.js';
+import { interestService } from './services/interestService.js';
 import { recurringService } from './services/recurringService.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -27,11 +28,16 @@ app.use(express.json());
 // Run forward-only migrations automatically at startup
 runMigrations(getDb());
 
-// Materialize recurring transactions at startup
+// Materialize recurring transactions and interest income at startup
 try {
   recurringService.generatePlannedTransactionsForHorizon();
 } catch (e) {
   console.warn('Initial recurrence generation skipped:', e.message);
+}
+try {
+  interestService.generateInterestPostings();
+} catch (e) {
+  console.warn('Initial interest posting skipped:', e.message);
 }
 
 // Liveness check endpoint
@@ -109,6 +115,11 @@ if (isDirectExecution) {
       recurringService.generatePlannedTransactionsForHorizon();
     } catch (e) {
       console.warn('Daily recurrence generation failed:', e.message);
+    }
+    try {
+      interestService.generateInterestPostings();
+    } catch (e) {
+      console.warn('Daily interest posting failed:', e.message);
     }
   }, DAILY_MS);
 
