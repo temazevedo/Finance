@@ -1,8 +1,7 @@
-import { CalendarClock, CreditCard, FolderTree, Repeat, Settings, ChevronRight, FileUp } from 'lucide-react';
+import { CalendarClock, CreditCard, FolderTree, Repeat, Settings, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const links = [
-  { to: '/import', label: 'Importar Extracto', description: 'Importar CSV do banco com dedução de duplicados', icon: FileUp },
   { to: '/recurring', label: 'Movimentos Recorrentes', description: 'Receitas, despesas fixas e transferências', icon: Repeat },
   { to: '/accounts', label: 'Contas', description: 'Gestão de contas e saldos iniciais', icon: CreditCard },
   { to: '/categories', label: 'Categorias', description: 'Árvore de categorias e orçamento', icon: FolderTree },

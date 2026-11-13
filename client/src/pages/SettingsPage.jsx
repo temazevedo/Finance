@@ -4,12 +4,14 @@ import {
   Database,
   Download,
   FileSpreadsheet,
+  FileUp,
   HardDriveDownload,
   PieChart,
   ShieldAlert,
   Wallet
 } from 'lucide-react';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { api, downloadFile } from '../api/client.js';
 import { formatCurrency } from '../utils/format.js';
 
@@ -122,6 +124,24 @@ export default function SettingsPage() {
           })}
         </div>
       </div>
+
+      {/* Import */}
+      <Link
+        to="/import"
+        className="bg-white border border-slate-200 rounded-2xl shadow-xs p-5 space-y-3 block hover:border-emerald-300 hover:bg-emerald-50/30 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <div className="p-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-600">
+            <FileUp className="w-4 h-4" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-sm font-bold text-slate-900">Importar Extracto Bancário</h2>
+            <p className="text-[11px] text-slate-500">
+              Importar CSV do banco com deteção de duplicados e categorização a partir do histórico
+            </p>
+          </div>
+        </div>
+      </Link>
 
       {/* Data safety */}
       <div className="bg-white border border-slate-200 rounded-2xl shadow-xs p-5 space-y-3">
