@@ -20,8 +20,11 @@ import AccountModal from '../components/AccountModal.jsx';
 import TransactionModal from '../components/TransactionModal.jsx';
 import {
   ACCOUNT_TYPE_LABELS,
+  INTEREST_PERIOD_LABELS,
+  estimateInterestCents,
   formatCurrency,
   formatDateDisplay,
+  formatInterestRate,
   formatMonthDisplay,
   getCurrentMonth,
   TRANSACTION_TYPE_LABELS
@@ -61,6 +64,8 @@ export default function DashboardPage() {
   const recentTransactions = txData?.data || [];
   const upcomingPlanned = (upcomingData?.data || []).filter((tx) => tx.status === 'planned');
   const totalBalanceCents = balances.reduce((sum, acc) => sum + (acc.balance_cents || 0), 0);
+  // Per-account breakdown for the hero card, biggest balance first
+  const breakdown = [...balances].sort((a, b) => (b.balance_cents || 0) - (a.balance_cents || 0));
   const budgetTotals = monthlyReport?.totals;
   const budgetRatio =
     budgetTotals && budgetTotals.available_cents > 0
@@ -112,10 +117,22 @@ export default function DashboardPage() {
             <TrendingUp className="w-6 h-6 text-emerald-200" />
           </div>
         </div>
-        <div className="mt-4 pt-4 border-t border-white/10 flex items-center gap-4 text-xs text-emerald-100">
-          <span>{balances.length} conta(s) ativa(s)</span>
-          <span>•</span>
-          <span>Saldos confirmados</span>
+        <div className="mt-4 pt-4 border-t border-white/10 space-y-1.5">
+          {isLoadingBalances ? (
+            <span className="text-xs text-emerald-100">A carregar contas...</span>
+          ) : (
+            breakdown.map((acc) => (
+              <div key={acc.id} className="flex items-center justify-between text-xs text-emerald-50">
+                <span className="truncate pr-3 font-medium">{acc.name}</span>
+                <span className="font-mono font-semibold shrink-0">{formatCurrency(acc.balance_cents)}</span>
+              </div>
+            ))
+          )}
+          <div className="pt-2 flex items-center gap-4 text-xs text-emerald-100">
+            <span>{balances.length} conta(s) ativa(s)</span>
+            <span>•</span>
+            <span>Saldos confirmados</span>
+          </div>
         </div>
       </div>
 
@@ -295,6 +312,13 @@ export default function DashboardPage() {
                 <div className="text-lg font-bold text-slate-900">
                   {formatCurrency(acc.balance_cents)}
                 </div>
+                {acc.type === 'investment' && acc.interest_rate != null && (
+                  <div className="text-[11px] text-amber-700 font-medium">
+                    {formatInterestRate(acc.interest_rate)} {INTEREST_PERIOD_LABELS[acc.interest_period] || ''}
+                    {estimateInterestCents(acc.balance_cents, acc.interest_rate, acc.interest_period) != null &&
+                      ` • ≈ ${formatCurrency(estimateInterestCents(acc.balance_cents, acc.interest_rate, acc.interest_period))}/período`}
+                  </div>
+                )}
                 <div className="text-[11px] text-slate-400">
                   Inicial: {formatCurrency(acc.initial_balance_cents)}
                 </div>
