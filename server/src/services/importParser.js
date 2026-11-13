@@ -31,8 +31,10 @@ export function parseCsv(text, delimiter = ';') {
   const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
   const rows = [];
 
+  // Blank lines are PRESERVED as empty rows so that skip_rows counts
+  // physical file lines (bank exports have blank lines inside their header
+  // blocks). Fully-empty rows are filtered later, after skip/header handling.
   for (const line of lines) {
-    if (line === '') continue; // skip blank lines entirely
     const fields = [];
     let field = '';
     let inQuotes = false;
@@ -156,13 +158,17 @@ export function parseStatement(fileBuffer, config) {
   if (config.has_header_row && dataRows.length > 0) {
     dataRows.shift(); // drop the column-header row
   }
+  // Drop physically-blank lines (kept during parsing for skip_rows counting),
+  // keeping their original slice index so error messages report real line numbers
+  const dataRowsFiltered = dataRows
+    .map((fields, idx) => ({ fields, idx }))
+    .filter((r) => r.fields.some((f) => f !== ''));
 
   const rows = [];
   const errors = [];
 
-  for (let i = 0; i < dataRows.length; i++) {
-    const fields = dataRows[i];
-    const fileLine = config.skip_rows + i + 1;
+  for (const { fields, idx } of dataRowsFiltered) {
+    const fileLine = config.skip_rows + idx + 1;
 
     const dateRaw = fields[config.columns.date];
     const descriptionRaw = fields[config.columns.description];

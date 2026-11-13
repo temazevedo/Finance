@@ -1,0 +1,17 @@
+﻿Consultar saldos e movimentos à ordem - 13-11-2026;="0995677171230"
+Nome cliente;ANONIMO
+NIF;000000000
+
+Dados da conta
+Conta;0995677171230 - EUR - Conta à ordem
+Saldo contabilístico;16.118,16 EUR
+Saldo disponível;16.118,16 EUR
+
+Dados da consulta
+Período;Outro
+Intervalo de;11-11-2026 a 13-11-2026
+Tipos de movimento;Todos
+
+Data mov.;Data-valor;Descrição;Montante;Saldo contabilístico após movimento
+13-11-2026;13-11-2026;Vodafone;-5,00;16.118,16
+12-11-2026;12-11-2026;Compra Teste;-25,50;16.123,16

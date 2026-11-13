@@ -39,10 +39,10 @@ CREATE INDEX IF NOT EXISTS ix_import_rows_batch ON import_rows(batch_id);
 CREATE INDEX IF NOT EXISTS ix_transactions_import_hash ON transactions(import_hash) WHERE import_hash IS NOT NULL;
 
 -- Built-in profile for CGD "Consultar saldos e movimentos à ordem" exports:
--- 15 informational header lines, one column-header row, ; separated,
--- DD-MM-YYYY dates, decimal comma, thousands dot, signed amount column.
+-- 14 header lines (including blank separators), one column-header row,
+-- ; separated, DD-MM-YYYY dates, decimal comma, thousands dot, signed amount.
 INSERT OR IGNORE INTO import_profiles (name, config_json, created_by) VALUES (
   'CGD — Movimentos à Ordem',
-  '{"encoding":"utf8","delimiter":";","skip_rows":15,"has_header_row":true,"date_format":"DD-MM-YYYY","decimal_separator":",","thousand_separator":".","columns":{"date":0,"description":2,"amount":3},"cleanup_rules":[]}',
+  '{"encoding":"utf8","delimiter":";","skip_rows":14,"has_header_row":true,"date_format":"DD-MM-YYYY","decimal_separator":",","thousand_separator":".","columns":{"date":0,"description":2,"amount":3},"cleanup_rules":[]}',
   'manual'
 );

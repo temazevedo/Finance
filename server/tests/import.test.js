@@ -77,7 +77,7 @@ describe('Import V2 (AGENT.md section 14)', () => {
       expect(res.status).toBe(200);
       const cgd = res.body.find((p) => p.name === 'CGD — Movimentos à Ordem');
       expect(cgd).toBeDefined();
-      expect(cgd.config.skip_rows).toBe(15);
+      expect(cgd.config.skip_rows).toBe(14);
       expect(cgd.config.columns.amount).toBe(3);
     });
 
@@ -159,6 +159,23 @@ describe('Import V2 (AGENT.md section 14)', () => {
       expect(rimas).toMatchObject({ date: '2026-03-01', type: 'expense', amount_cents: 1710 });
       expect(vodafone).toMatchObject({ date: '2026-03-02', type: 'expense', amount_cents: 500 });
       expect(transferencia).toMatchObject({ date: '2026-03-03', type: 'income', amount_cents: 55000 });
+    });
+
+    it('parses CGD exports whose header block contains blank lines', async () => {
+      // Regression: real 13-11-2026 export with blank separator lines inside
+      // the 14-line header block — blank lines must count as physical lines.
+      const profiles = await request(app).get('/api/import-profiles');
+      const cgd = profiles.body.find((p) => p.name === 'CGD — Movimentos à Ordem');
+
+      const res = await upload(account.id, readFixture('sample-cgd-blank-header-lines.csv'), {
+        profileId: cgd.id
+      });
+      expect(res.status).toBe(201);
+      expect(res.body.rows).toHaveLength(2);
+      expect(res.body.parse_errors).toHaveLength(0);
+      const [vodafone, compra] = res.body.rows;
+      expect(vodafone).toMatchObject({ date: '2026-11-13', type: 'expense', amount_cents: 500, description: 'Vodafone' });
+      expect(compra).toMatchObject({ date: '2026-11-12', type: 'expense', amount_cents: 2550 });
     });
 
     it('decodes windows-1252 files', async () => {
