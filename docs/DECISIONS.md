@@ -41,3 +41,8 @@ This document records architectural decisions, assumptions, and rationales for t
 - **Context:** `GET /reports/cashflow` must project planned + actual flows over an arbitrary range.
 - **Decision:** Opening balance = active accounts' initial balances + all confirmed flows before `from`. The daily series applies every transaction in `from..to` (both statuses) with sign `+income / -expense`; transfers between own accounts contribute net zero and are excluded from income/expense totals. Projection relies only on stored `planned` transactions (the generator materializes a rolling 60-day horizon); it does not extrapolate beyond generator coverage. Ranges are capped at 370 days.
 - **Rationale:** Keeps the projection consistent with account balances by construction and avoids silently inventing occurrences outside what the user confirmed as a plan.
+
+## Decision 9: CSV Export and Settings Keys
+- **Context:** Spec section 10 requires browser downloads of the DB backup and a transactions CSV; the settings screen also needs a persisted budget method.
+- **Decision:** CSV uses `;` as separator, decimal comma for amounts (pt-PT/Excel friendly), a UTF-8 BOM and quoted fields when values contain separators/quotes. `GET/PUT /api/settings` exposes only user-adjustable known keys (initially `budget_method`); the chosen method becomes the default view on `/budgets` while all methods remain views over the same data.
+- **Rationale:** Matches regional spreadsheet conventions out of the box and keeps the settings table contract (`key`/`value`, known keys in AGENT.md section 5.7) without schema changes.

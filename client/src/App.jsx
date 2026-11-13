@@ -9,6 +9,7 @@ import DashboardPage from './pages/DashboardPage.jsx';
 import MorePage from './pages/MorePage.jsx';
 import OnboardingPage from './pages/OnboardingPage.jsx';
 import RecurringPage from './pages/RecurringPage.jsx';
+import SettingsPage from './pages/SettingsPage.jsx';
 import TransactionsPage from './pages/TransactionsPage.jsx';
 import UpcomingPage from './pages/UpcomingPage.jsx';
 
@@ -47,6 +48,7 @@ export default function App() {
           <Route path="/budgets" element={<BudgetsPage />} />
           <Route path="/accounts" element={<AccountsPage />} />
           <Route path="/categories" element={<CategoriesPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
           <Route path="/more" element={<MorePage />} />
         </Routes>
       </main>

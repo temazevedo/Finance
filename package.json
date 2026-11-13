@@ -14,7 +14,8 @@
     "build": "npm run build -w client",
     "start": "npm start -w server",
     "test": "npm test -w server",
-    "migrate": "npm run migrate -w server"
+    "migrate": "npm run migrate -w server",
+    "backup": "npm run backup -w server"
   },
   "allowScripts": {
     "better-sqlite3@11.10.0": true,

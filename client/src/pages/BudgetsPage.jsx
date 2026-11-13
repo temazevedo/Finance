@@ -12,7 +12,7 @@ import {
   TrendingDown,
   Wallet
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { api } from '../api/client.js';
 import {
   addMonthsToMonth,
@@ -57,9 +57,29 @@ export default function BudgetsPage() {
   const queryClient = useQueryClient();
   const [month, setMonth] = useState(getCurrentMonth());
   const [view, setView] = useState('month');
+  const [viewChanged, setViewChanged] = useState(false);
   const [drafts, setDrafts] = useState({}); // { [categoryId]: string }
   const [extraRows, setExtraRows] = useState([]); // categories added without data yet
   const [saveError, setSaveError] = useState('');
+
+  const { data: settings } = useQuery({
+    queryKey: ['settings'],
+    queryFn: api.getSettings
+  });
+
+  // First visit: honour the persisted budget method preference from /settings
+  const settingsMethod = settings?.budget_method;
+  useEffect(() => {
+    if (settingsMethod && !viewChanged) {
+      const mapping = { '50_30_20': '503020', zero_based: 'zero', envelope: 'envelope' };
+      if (mapping[settingsMethod]) setView(mapping[settingsMethod]);
+    }
+  }, [settingsMethod, viewChanged]);
+
+  function handleViewChange(next) {
+    setView(next);
+    setViewChanged(true);
+  }
 
   const { data: report, isLoading: reportLoading } = useQuery({
     queryKey: ['budget-vs-actual', month],
@@ -237,7 +257,7 @@ export default function BudgetsPage() {
           return (
             <button
               key={v.id}
-              onClick={() => setView(v.id)}
+              onClick={() => handleViewChange(v.id)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
                 view === v.id ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900'
               }`}

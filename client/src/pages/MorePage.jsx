@@ -1,11 +1,12 @@
-import { CalendarClock, CreditCard, FolderTree, Repeat, ChevronRight } from 'lucide-react';
+import { CalendarClock, CreditCard, FolderTree, Repeat, Settings, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const links = [
   { to: '/recurring', label: 'Movimentos Recorrentes', description: 'Receitas, despesas fixas e transferências', icon: Repeat },
-  { to: '/accounts', label: 'Contas', description: 'Gestão de contas e saldos inicias', icon: CreditCard },
+  { to: '/accounts', label: 'Contas', description: 'Gestão de contas e saldos iniciais', icon: CreditCard },
   { to: '/categories', label: 'Categorias', description: 'Árvore de categorias e orçamento', icon: FolderTree },
-  { to: '/upcoming', label: 'Próximos Movimentos', description: 'Confirmar movimentos planeados', icon: CalendarClock }
+  { to: '/upcoming', label: 'Próximos Movimentos', description: 'Confirmar movimentos planeados', icon: CalendarClock },
+  { to: '/settings', label: 'Definições', description: 'Método de orçamento, backup e exportação', icon: Settings }
 ];
 
 export default function MorePage() {

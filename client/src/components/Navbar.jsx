@@ -7,6 +7,7 @@ import {
   PieChart,
   Receipt,
   Repeat,
+  Settings,
   Wallet
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
@@ -65,6 +66,18 @@ export default function Navbar() {
                 </NavLink>
               );
             })}
+
+            <NavLink
+              to="/settings"
+              title="Definições"
+              className={({ isActive }) =>
+                `ml-1 flex items-center px-2 py-2 rounded-lg transition-colors ${
+                  isActive ? 'bg-emerald-50 text-emerald-700' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+                }`
+              }
+            >
+              <Settings className="w-4 h-4" />
+            </NavLink>
           </nav>
         </div>
       </header>

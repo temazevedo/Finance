@@ -90,6 +90,31 @@ export const api = {
   getBudgetVsActual: (month) => apiFetch(`/reports/budget-vs-actual?month=${month}`),
   getCashflow: (from, to) => apiFetch(`/reports/cashflow?from=${from}&to=${to}`),
 
+  // Settings
+  getSettings: () => apiFetch('/settings'),
+  saveSettings: (data) => apiFetch('/settings', { method: 'PUT', body: JSON.stringify(data) }),
+
   // Health
   getHealth: () => apiFetch('/health')
 };
+
+/**
+ * Triggers a browser download for a file endpoint (backup / CSV export).
+ * @param {string} endpoint API path without prefix, e.g. '/settings/backup'
+ * @param {string} filename client-side fallback name
+ */
+export async function downloadFile(endpoint, filename) {
+  const res = await fetch(`/api${endpoint}`);
+  if (!res.ok) {
+    throw new Error(`Pedido falhou com código ${res.status}`);
+  }
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}

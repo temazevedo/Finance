@@ -10,8 +10,10 @@ import { categoriesRouter } from './routes/categories.js';
 import { onboardingRouter } from './routes/onboarding.js';
 import { recurringRouter } from './routes/recurring.js';
 import { reportsRouter } from './routes/reports.js';
+import { settingsRouter } from './routes/settings.js';
 import { suggestionsRouter } from './routes/suggestions.js';
 import { transactionsRouter } from './routes/transactions.js';
+import { createBackup } from './services/backupService.js';
 import { recurringService } from './services/recurringService.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -48,6 +50,7 @@ app.use('/api/onboarding', onboardingRouter);
 app.use('/api/recurring', recurringRouter);
 app.use('/api/reports', reportsRouter);
 app.use('/api/suggestions', suggestionsRouter);
+app.use('/api/settings', settingsRouter);
 app.use('/api/transactions', transactionsRouter);
 
 // Serve client dist in production or single-process deployment
@@ -108,4 +111,16 @@ if (isDirectExecution) {
       console.warn('Daily recurrence generation failed:', e.message);
     }
   }, DAILY_MS);
+
+  // Automatic daily backup with retention (spec section 10: keeps last 14)
+  async function automaticBackup() {
+    try {
+      const { filename } = await createBackup();
+      console.log(`Automatic backup created: ${filename}`);
+    } catch (e) {
+      console.warn('Automatic backup failed:', e.message);
+    }
+  }
+  automaticBackup();
+  setInterval(automaticBackup, DAILY_MS);
 }
