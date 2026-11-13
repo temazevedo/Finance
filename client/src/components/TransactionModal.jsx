@@ -3,6 +3,7 @@ import { ArrowLeftRight, ArrowDownLeft, ArrowUpRight, X } from 'lucide-react';
 import React, { useState } from 'react';
 import { api } from '../api/client.js';
 import { parseCurrencyToCents } from '../utils/format.js';
+import NameCombobox from './NameCombobox.jsx';
 
 export default function TransactionModal({ isOpen, onClose }) {
   const queryClient = useQueryClient();
@@ -47,6 +48,13 @@ export default function TransactionModal({ isOpen, onClose }) {
       setFormError(err.message || 'Erro ao criar transação');
     }
   });
+
+  function handleSelectSuggestion(suggestion) {
+    if (suggestion.last_amount_cents && suggestion.last_amount_cents > 0) {
+      const eurosFormatted = (suggestion.last_amount_cents / 100).toFixed(2).replace('.', ',');
+      setAmountStr(eurosFormatted);
+    }
+  }
 
   function handleClose() {
     setType('expense');
@@ -247,18 +255,29 @@ export default function TransactionModal({ isOpen, onClose }) {
             </div>
           )}
 
-          {/* 4. Name / Payee */}
+          {/* 4. Name / Payee (Combobox with suggestions for income/expense) */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
               Entidade / Descrição
             </label>
-            <input
-              type="text"
-              placeholder="Ex: Pingo Doce, Continente, Vencimento..."
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full text-sm bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
-            />
+            {type !== 'transfer' ? (
+              <NameCombobox
+                value={name}
+                onChange={setName}
+                onSelectSuggestion={handleSelectSuggestion}
+                categoryId={categoryId ? Number(categoryId) : null}
+                disabled={!categoryId}
+                placeholder="Ex: Pingo Doce, Continente, Vencimento..."
+              />
+            ) : (
+              <input
+                type="text"
+                placeholder="Ex: Poupança mensal, Reforço de conta..."
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full text-sm bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+              />
+            )}
           </div>
 
           {/* 5. Amount & Date */}

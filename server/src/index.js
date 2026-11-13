@@ -6,6 +6,7 @@ import { getDb } from './db.js';
 import { runMigrations } from './migrate.js';
 import { accountsRouter } from './routes/accounts.js';
 import { categoriesRouter } from './routes/categories.js';
+import { suggestionsRouter } from './routes/suggestions.js';
 import { transactionsRouter } from './routes/transactions.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -30,6 +31,7 @@ app.get('/api/health', (req, res) => {
 // API Routes
 app.use('/api/accounts', accountsRouter);
 app.use('/api/categories', categoriesRouter);
+app.use('/api/suggestions', suggestionsRouter);
 app.use('/api/transactions', transactionsRouter);
 
 // Serve client dist in production or single-process deployment

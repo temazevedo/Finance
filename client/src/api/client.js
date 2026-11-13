@@ -57,6 +57,10 @@ export const api = {
   updateTransaction: (id, data) => apiFetch(`/transactions/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   deleteTransaction: (id) => apiFetch(`/transactions/${id}`, { method: 'DELETE' }),
 
+  // Suggestions
+  getNameSuggestions: (categoryId, q = '') =>
+    apiFetch(`/suggestions/names?categoryId=${categoryId}&q=${encodeURIComponent(q)}`),
+
   // Health
   getHealth: () => apiFetch('/health')
 };
