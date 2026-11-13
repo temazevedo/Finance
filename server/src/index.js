@@ -4,6 +4,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getDb } from './db.js';
 import { runMigrations } from './migrate.js';
+import { accountsRouter } from './routes/accounts.js';
+import { categoriesRouter } from './routes/categories.js';
+import { transactionsRouter } from './routes/transactions.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,6 +26,11 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+
+// API Routes
+app.use('/api/accounts', accountsRouter);
+app.use('/api/categories', categoriesRouter);
+app.use('/api/transactions', transactionsRouter);
 
 // Serve client dist in production or single-process deployment
 const clientDistPath = path.resolve(__dirname, '../../client/dist');
@@ -50,12 +58,14 @@ app.use('/api/*', (req, res) => {
 
 // Global error handler adhering to spec: { "error": { "code": string, "message": string, "details"?: any } }
 app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err);
   const status = err.status || 500;
+  if (status >= 500) {
+    console.error('Server error:', err);
+  }
   res.status(status).json({
     error: {
       code: err.code || 'INTERNAL_SERVER_ERROR',
-      message: err.message || 'An unexpected error occurred',
+      message: err.message || 'Ocorreu um erro inesperado',
       ...(err.details ? { details: err.details } : {})
     }
   });
