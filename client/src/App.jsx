@@ -5,6 +5,7 @@ import Navbar from './components/Navbar.jsx';
 import AccountsPage from './pages/AccountsPage.jsx';
 import BudgetsPage from './pages/BudgetsPage.jsx';
 import CategoriesPage from './pages/CategoriesPage.jsx';
+import ImportPage from './pages/ImportPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 import MorePage from './pages/MorePage.jsx';
 import OnboardingPage from './pages/OnboardingPage.jsx';
@@ -48,6 +49,7 @@ export default function App() {
           <Route path="/budgets" element={<BudgetsPage />} />
           <Route path="/accounts" element={<AccountsPage />} />
           <Route path="/categories" element={<CategoriesPage />} />
+          <Route path="/import" element={<ImportPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/more" element={<MorePage />} />
         </Routes>

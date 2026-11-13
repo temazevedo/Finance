@@ -3,11 +3,13 @@
  */
 
 async function apiFetch(endpoint, options = {}) {
+  const headers = { ...options.headers };
+  // Let the browser set the multipart boundary for FormData uploads
+  if (!(options.body instanceof FormData)) {
+    headers['Content-Type'] = 'application/json';
+  }
   const res = await fetch(`/api${endpoint}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers
-    },
+    headers,
     ...options
   });
 
@@ -41,6 +43,30 @@ export const api = {
   createCategory: (data) => apiFetch('/categories', { method: 'POST', body: JSON.stringify(data) }),
   updateCategory: (id, data) => apiFetch(`/categories/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   deleteCategory: (id) => apiFetch(`/categories/${id}`, { method: 'DELETE' }),
+
+  // Import (V2 — AGENT.md section 14)
+  getImportProfiles: () => apiFetch('/import-profiles'),
+  createImportProfile: (data) => apiFetch('/import-profiles', { method: 'POST', body: JSON.stringify(data) }),
+  updateImportProfile: (id, data) => apiFetch(`/import-profiles/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  uploadImport: (accountId, file, { profileId, profileName, profileConfig } = {}) => {
+    const form = new FormData();
+    form.append('accountId', String(accountId));
+    form.append('file', file);
+    if (profileId) form.append('profileId', String(profileId));
+    if (profileName) form.append('profileName', profileName);
+    if (profileConfig) form.append('profileConfig', JSON.stringify(profileConfig));
+    return apiFetch('/imports', { method: 'POST', body: form });
+  },
+  proposeImportProfile: (file) => {
+    const form = new FormData();
+    form.append('file', file);
+    return apiFetch('/imports/propose-profile', { method: 'POST', body: form });
+  },
+  getImportBatch: (id) => apiFetch(`/imports/${id}`),
+  updateImportRow: (batchId, rowId, data) =>
+    apiFetch(`/imports/${batchId}/rows/${rowId}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  commitImport: (batchId) => apiFetch(`/imports/${batchId}/commit`, { method: 'POST' }),
+  discardImport: (batchId) => apiFetch(`/imports/${batchId}`, { method: 'DELETE' }),
 
   // Transactions
   getTransactions: (params = {}) => {

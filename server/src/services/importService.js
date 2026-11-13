@@ -109,12 +109,21 @@ export class ImportService {
     const existingHashes = new Set(
       this.db.prepare('SELECT import_hash FROM transactions WHERE import_hash IS NOT NULL').all().map((r) => r.import_hash)
     );
-    // Planned transactions on this account for reconciliation proposals
+    // Safety net for data without import_hash (legacy/manual imports): count
+    // confirmed rows per (date, amount, normalized description) on the account.
+    const existingKeyCounts = new Map();
+    for (const tx of this.db
+      .prepare(`SELECT date, amount_cents, name FROM transactions WHERE account_id = ? AND status = 'confirmed' AND name IS NOT NULL AND name != ''`)
+      .all(accountId)) {
+      const key = `${tx.date}|${tx.amount_cents}|${normalizeText(tx.name)}`;
+      existingKeyCounts.set(key, (existingKeyCounts.get(key) || 0) + 1);
+    }
+    // Existing planned transactions on this account for reconciliation proposals
     const plannedTxs = this.db
       .prepare(`SELECT id, date, amount_cents, category_id, name FROM transactions WHERE account_id = ? AND status = 'planned'`)
       .all(accountId);
 
-    const staged = this.stageRows(accountId, rows, { knowledge, existingHashes, plannedTxs });
+    const staged = this.stageRows(accountId, rows, { knowledge, existingHashes, existingKeyCounts, plannedTxs });
 
     const insertBatch = this.db.transaction(() => {
       const batchResult = this.db
@@ -149,14 +158,14 @@ export class ImportService {
     });
 
     const batchId = insertBatch();
-    return this.getBatch(batchId, { parseErrors: errors });
+    return this.getBatch(batchId, { parse_errors: errors });
   }
 
   /**
    * Computes hash, match status, category and planned proposal for each row.
    * @private
    */
-  stageRows(accountId, rows, { knowledge, existingHashes, plannedTxs }) {
+  stageRows(accountId, rows, { knowledge, existingHashes, existingKeyCounts, plannedTxs }) {
     // occurrence_index: distinguishes identical rows (same day/amount/description) in the file
     const occurrence = new Map();
 
@@ -169,8 +178,13 @@ export class ImportService {
         .update(`${accountId}|${row.date}|${row.amount_cents}|${row.normalized}|${occurrenceIndex}`)
         .digest('hex');
 
-      // Duplicates are skipped by default (14.4)
-      if (existingHashes.has(importHash)) {
+      // Duplicates are skipped by default (14.4). The hash catches rows
+      // imported through this system before; the key-count check also catches
+      // legacy/manual data without import_hash.
+      const isDuplicate =
+        existingHashes.has(importHash) ||
+        (existingKeyCounts.get(key) || 0) > occurrenceIndex;
+      if (isDuplicate) {
         return { ...row, import_hash: importHash, match_status: 'duplicate', name: row.description, category_id: null, planned_transaction_id: null };
       }
 
