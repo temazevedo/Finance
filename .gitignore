@@ -6,3 +6,4 @@ data/
 .env.local
 coverage/
 .DS_Store
+imports/
