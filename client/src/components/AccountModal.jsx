@@ -1,26 +1,46 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { X } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { api } from '../api/client.js';
-import { parseCurrencyToCents } from '../utils/format.js';
+import { centsToInput, parseCurrencyToCents } from '../utils/format.js';
 
-export default function AccountModal({ isOpen, onClose }) {
+/**
+ * Create/edit account modal.
+ * Pass an `account` object to edit an existing account; omit it to create a new one.
+ */
+export default function AccountModal({ isOpen, onClose, account = null }) {
   const queryClient = useQueryClient();
+  const isEdit = Boolean(account);
 
   const [name, setName] = useState('');
   const [type, setType] = useState('checking');
   const [initialBalanceStr, setInitialBalanceStr] = useState('0,00');
   const [errorMsg, setErrorMsg] = useState('');
 
+  useEffect(() => {
+    if (!isOpen) return;
+    if (account) {
+      setName(account.name || '');
+      setType(account.type || 'checking');
+      setInitialBalanceStr(centsToInput(account.initial_balance_cents) || '0,00');
+    } else {
+      setName('');
+      setType('checking');
+      setInitialBalanceStr('0,00');
+    }
+    setErrorMsg('');
+  }, [isOpen, account]);
+
   const mutation = useMutation({
-    mutationFn: (payload) => api.createAccount(payload),
+    mutationFn: (payload) =>
+      isEdit ? api.updateAccount(account.id, payload) : api.createAccount(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
       queryClient.invalidateQueries({ queryKey: ['accounts-balances'] });
       handleClose();
     },
     onError: (err) => {
-      setErrorMsg(err.message || 'Erro ao criar conta');
+      setErrorMsg(err.message || (isEdit ? 'Erro ao atualizar conta' : 'Erro ao criar conta'));
     }
   });
 
@@ -42,13 +62,20 @@ export default function AccountModal({ isOpen, onClose }) {
     }
 
     const parsedCents = parseCurrencyToCents(initialBalanceStr);
-    const initialBalanceCents = parsedCents !== null ? parsedCents : 0;
 
-    mutation.mutate({
-      name: name.trim(),
-      type,
-      initial_balance_cents: initialBalanceCents
-    });
+    if (isEdit) {
+      mutation.mutate({
+        name: name.trim(),
+        type,
+        initial_balance_cents: parsedCents !== null ? parsedCents : 0
+      });
+    } else {
+      mutation.mutate({
+        name: name.trim(),
+        type,
+        initial_balance_cents: parsedCents !== null ? parsedCents : 0
+      });
+    }
   }
 
   if (!isOpen) return null;
@@ -57,7 +84,9 @@ export default function AccountModal({ isOpen, onClose }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4 overflow-y-auto">
       <div className="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-md w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-          <h2 className="text-lg font-bold text-slate-900">Nova Conta</h2>
+          <h2 className="text-lg font-bold text-slate-900">
+            {isEdit ? 'Editar Conta' : 'Nova Conta'}
+          </h2>
           <button
             onClick={handleClose}
             className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
@@ -111,7 +140,11 @@ export default function AccountModal({ isOpen, onClose }) {
               />
               <span className="absolute right-3 top-2 text-sm text-slate-400">€</span>
             </div>
-            <p className="text-xs text-slate-400 mt-1">Saldo disponível no momento da criação da conta</p>
+            <p className="text-xs text-slate-400 mt-1">
+              {isEdit
+                ? 'Atenção: alterar o saldo inicial recalcula o saldo de todos os meses anteriores'
+                : 'Saldo disponível no momento da criação da conta'}
+            </p>
           </div>
 
           <div className="pt-2 flex items-center justify-end gap-2">
@@ -127,7 +160,7 @@ export default function AccountModal({ isOpen, onClose }) {
               disabled={mutation.isPending}
               className="px-5 py-2 rounded-xl text-xs font-medium bg-emerald-600 hover:bg-emerald-700 text-white transition-colors shadow-xs disabled:opacity-50"
             >
-              {mutation.isPending ? 'A gravar...' : 'Criar Conta'}
+              {mutation.isPending ? 'A gravar...' : isEdit ? 'Guardar Alterações' : 'Criar Conta'}
             </button>
           </div>
         </form>

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Archive, ArchiveRestore, CreditCard, Plus, Wallet } from 'lucide-react';
+import { Archive, ArchiveRestore, CreditCard, Pencil, Plus, Wallet } from 'lucide-react';
 import React, { useState } from 'react';
 import { api } from '../api/client.js';
 import AccountModal from '../components/AccountModal.jsx';
@@ -8,6 +8,7 @@ import { ACCOUNT_TYPE_LABELS, formatCurrency } from '../utils/format.js';
 export default function AccountsPage() {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingAccount, setEditingAccount] = useState(null);
   const [showArchived, setShowArchived] = useState(false);
 
   const { data: balances = [], isLoading } = useQuery({
@@ -56,7 +57,10 @@ export default function AccountsPage() {
             {showArchived ? 'Ocultar Arquivadas' : 'Ver Arquivadas'}
           </button>
           <button
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => {
+              setEditingAccount(null);
+              setIsModalOpen(true);
+            }}
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors shadow-xs"
           >
             <Plus className="w-4 h-4" />
@@ -92,7 +96,10 @@ export default function AccountsPage() {
             <CreditCard className="w-8 h-8 text-slate-300 mx-auto" />
             <p className="text-sm text-slate-600">Nenhuma conta encontrada.</p>
             <button
-              onClick={() => setIsModalOpen(true)}
+              onClick={() => {
+                setEditingAccount(null);
+                setIsModalOpen(true);
+              }}
               className="text-xs font-semibold px-4 py-2 bg-emerald-600 text-white rounded-xl"
             >
               Criar primeira conta
@@ -111,17 +118,29 @@ export default function AccountsPage() {
                   <h3 className="font-bold text-base text-slate-900">{acc.name}</h3>
                   <span className="text-xs text-slate-500">{ACCOUNT_TYPE_LABELS[acc.type] || acc.type}</span>
                 </div>
-                <button
-                  onClick={() => toggleArchive(acc)}
-                  className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
-                  title={acc.archived ? 'Reativar conta' : 'Arquivar conta'}
-                >
-                  {acc.archived ? (
-                    <ArchiveRestore className="w-4 h-4 text-emerald-600" />
-                  ) : (
-                    <Archive className="w-4 h-4" />
-                  )}
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => {
+                      setEditingAccount(acc);
+                      setIsModalOpen(true);
+                    }}
+                    className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
+                    title="Editar conta"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => toggleArchive(acc)}
+                    className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
+                    title={acc.archived ? 'Reativar conta' : 'Arquivar conta'}
+                  >
+                    {acc.archived ? (
+                      <ArchiveRestore className="w-4 h-4 text-emerald-600" />
+                    ) : (
+                      <Archive className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-1">
@@ -144,7 +163,14 @@ export default function AccountsPage() {
         )}
       </div>
 
-      <AccountModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <AccountModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingAccount(null);
+        }}
+        account={editingAccount}
+      />
     </div>
   );
 }
