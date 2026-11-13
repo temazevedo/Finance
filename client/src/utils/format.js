@@ -10,6 +10,19 @@ const CURRENCY_FORMATTER = new Intl.NumberFormat('pt-PT', {
 });
 
 /**
+ * Returns today's date as YYYY-MM-DD built from local calendar components.
+ * Avoids `toISOString()` (UTC) which shifts the date back a day in WET/WEST evenings.
+ * @returns {string}
+ */
+export function getTodayYMD() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/**
  * Formats integer cents to EUR currency string (e.g. 1250 -> "12,50 €").
  * @param {number} cents
  * @returns {string}
@@ -38,6 +51,17 @@ export function parseCurrencyToCents(value) {
 }
 
 /**
+ * Formats integer cents as a pt-PT editable money string (1250 -> "12,50").
+ * Returns '' for zero/invalid so placeholder shows instead.
+ * @param {number | null | undefined} cents
+ * @returns {string}
+ */
+export function centsToInput(cents) {
+  if (typeof cents !== 'number' || isNaN(cents) || cents === 0) return '';
+  return (cents / 100).toFixed(2).replace('.', ',');
+}
+
+/**
  * Formats a YYYY-MM-DD date string for display (DD/MM/YYYY).
  * Avoids native Date UTC shift.
  * @param {string} dateStr
@@ -50,6 +74,16 @@ export function formatDateDisplay(dateStr) {
   const [year, month, day] = parts;
   return `${day}/${month}/${year}`;
 }
+
+export const FREQUENCY_LABELS = {
+  weekly: 'Semanal',
+  biweekly: 'Quinzenal',
+  monthly: 'Mensal',
+  bimonthly: 'Bimestral',
+  quarterly: 'Trimestral',
+  semiannual: 'Semestral',
+  annual: 'Anual'
+};
 
 export const ACCOUNT_TYPE_LABELS = {
   checking: 'Conta à Ordem',

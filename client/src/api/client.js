@@ -61,6 +61,26 @@ export const api = {
   getNameSuggestions: (categoryId, q = '') =>
     apiFetch(`/suggestions/names?categoryId=${categoryId}&q=${encodeURIComponent(q)}`),
 
+  // Recurring Items
+  getRecurring: (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return apiFetch(`/recurring${qs ? `?${qs}` : ''}`);
+  },
+  getRecurringItem: (id) => apiFetch(`/recurring/${id}`),
+  createRecurring: (data) => apiFetch('/recurring', { method: 'POST', body: JSON.stringify(data) }),
+  updateRecurring: (id, data) => apiFetch(`/recurring/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteRecurring: (id) => apiFetch(`/recurring/${id}`, { method: 'DELETE' }),
+  getRecurringSummary: () => apiFetch('/recurring/summary'),
+
+  // Onboarding
+  getOnboardingState: () => apiFetch('/onboarding/state'),
+  saveOnboardingStep: (step, data) =>
+    apiFetch('/onboarding/step', {
+      method: 'PUT',
+      body: JSON.stringify(data !== undefined ? { step, data } : { step })
+    }),
+  completeOnboarding: (data) => apiFetch('/onboarding/complete', { method: 'POST', body: JSON.stringify(data) }),
+
   // Health
   getHealth: () => apiFetch('/health')
 };

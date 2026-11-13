@@ -1,9 +1,19 @@
-import { CreditCard, FolderTree, LayoutDashboard, Receipt, Wallet } from 'lucide-react';
+import {
+  CalendarClock,
+  CreditCard,
+  FolderTree,
+  LayoutDashboard,
+  Receipt,
+  Repeat,
+  Wallet
+} from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 
 const navItems = [
   { to: '/', label: 'Painel', icon: LayoutDashboard },
   { to: '/transactions', label: 'Transações', icon: Receipt },
+  { to: '/upcoming', label: 'Próximos', icon: CalendarClock },
+  { to: '/recurring', label: 'Recorrentes', icon: Repeat },
   { to: '/accounts', label: 'Contas', icon: CreditCard },
   { to: '/categories', label: 'Categorias', icon: FolderTree }
 ];
@@ -57,7 +67,7 @@ export default function Navbar() {
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `flex flex-col items-center gap-1 py-1 px-3 rounded-lg text-xs font-medium transition-colors ${
+                `flex flex-col items-center gap-1 py-1 px-1 rounded-lg text-xs font-medium transition-colors ${
                   isActive ? 'text-emerald-600' : 'text-slate-500 hover:text-slate-900'
                 }`
               }

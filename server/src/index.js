@@ -6,8 +6,11 @@ import { getDb } from './db.js';
 import { runMigrations } from './migrate.js';
 import { accountsRouter } from './routes/accounts.js';
 import { categoriesRouter } from './routes/categories.js';
+import { onboardingRouter } from './routes/onboarding.js';
+import { recurringRouter } from './routes/recurring.js';
 import { suggestionsRouter } from './routes/suggestions.js';
 import { transactionsRouter } from './routes/transactions.js';
+import { recurringService } from './services/recurringService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,6 +23,13 @@ app.use(express.json());
 // Run forward-only migrations automatically at startup
 runMigrations(getDb());
 
+// Materialize recurring transactions at startup
+try {
+  recurringService.generatePlannedTransactionsForHorizon();
+} catch (e) {
+  console.warn('Initial recurrence generation skipped:', e.message);
+}
+
 // Liveness check endpoint
 app.get('/api/health', (req, res) => {
   res.json({
@@ -31,6 +41,8 @@ app.get('/api/health', (req, res) => {
 // API Routes
 app.use('/api/accounts', accountsRouter);
 app.use('/api/categories', categoriesRouter);
+app.use('/api/onboarding', onboardingRouter);
+app.use('/api/recurring', recurringRouter);
 app.use('/api/suggestions', suggestionsRouter);
 app.use('/api/transactions', transactionsRouter);
 
@@ -82,4 +94,14 @@ if (isDirectExecution) {
   app.listen(PORT, HOST, () => {
     console.log(`Server listening on http://${HOST}:${PORT}`);
   });
+
+  // Daily recurrence generation (spec section 6.3: run once per day)
+  const DAILY_MS = 24 * 60 * 60 * 1000;
+  setInterval(() => {
+    try {
+      recurringService.generatePlannedTransactionsForHorizon();
+    } catch (e) {
+      console.warn('Daily recurrence generation failed:', e.message);
+    }
+  }, DAILY_MS);
 }

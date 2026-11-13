@@ -26,3 +26,8 @@ This document records architectural decisions, assumptions, and rationales for t
 - **Context:** JavaScript's `new Date("YYYY-MM-DD")` evaluates as UTC midnight, causing off-by-one errors when formatted or inspected in Portuguese local time (WET/WEST).
 - **Decision:** Use string-based arithmetic helpers for calendar dates (`YYYY-MM-DD`), month clamping, and ISO formatting.
 - **Rationale:** Guarantees deterministic, timezone-immune date math.
+
+## Decision 6: Onboarding Wizard Persistence via `settings` table
+- **Context:** The onboarding wizard must be resumable if the browser closes mid-way (spec section 6.2, step 4 variable budgets are ephemeral between steps).
+- **Decision:** Wizard progress persists in two places: recurring items/accounts created during the wizard are normal DB rows (source of truth), while the active step number and the step-4 variable-budgets draft are stored in `settings` (`onboarding_step`, `onboarding_step_data` JSON).
+- **Rationale:** Follows the existing key/value settings pattern already specified (`onboarding_completed`, `onboarding_step`) without adding new tables or API surface.
