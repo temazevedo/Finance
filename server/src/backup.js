@@ -1,4 +1,5 @@
-import { getDb, runMigrations } from './db.js';
+import { getDb } from './db.js';
+import { runMigrations } from './migrate.js';
 import { DEFAULT_BACKUP_DIR, createBackup } from './services/backupService.js';
 
 /**
