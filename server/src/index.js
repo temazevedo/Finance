@@ -7,6 +7,7 @@ import { runMigrations } from './migrate.js';
 import { accountsRouter } from './routes/accounts.js';
 import { budgetsRouter } from './routes/budgets.js';
 import { categoriesRouter } from './routes/categories.js';
+import { importsRouter, importProfilesRouter } from './routes/imports.js';
 import { onboardingRouter } from './routes/onboarding.js';
 import { recurringRouter } from './routes/recurring.js';
 import { reportsRouter } from './routes/reports.js';
@@ -52,6 +53,8 @@ app.get('/api/health', (req, res) => {
 app.use('/api/accounts', accountsRouter);
 app.use('/api/budgets', budgetsRouter);
 app.use('/api/categories', categoriesRouter);
+app.use('/api/import-profiles', importProfilesRouter);
+app.use('/api/imports', importsRouter);
 app.use('/api/onboarding', onboardingRouter);
 app.use('/api/recurring', recurringRouter);
 app.use('/api/reports', reportsRouter);
